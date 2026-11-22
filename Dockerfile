@@ -7,19 +7,21 @@ WORKDIR /brouter
 COPY . .
 
 RUN sed -i 's/\r$//' gradlew && chmod +x gradlew
-RUN --mount=type=cache,target=/root/.gradle ./gradlew --no-daemon clean build
+RUN --mount=type=cache,target=/root/.gradle ./gradlew --no-daemon clean build -x test
 
 FROM eclipse-temurin:17-jre-jammy
 
 RUN groupadd --gid 1000 brouter \
     && useradd --uid 1000 --gid brouter --home-dir /app --no-create-home brouter \
-    && mkdir -p /app /segments4 /customprofiles \
-    && chown brouter:brouter /app /segments4 /customprofiles
+    && mkdir -p /app /segments4 /customprofiles /profiles2
 
 WORKDIR /app
 COPY --from=build /brouter/brouter-server/build/libs/brouter-*-all.jar /app/brouter.jar
 COPY --from=build --chmod=755 /brouter/misc/scripts/standalone/server.sh /app/server.sh
 COPY --from=build /brouter/misc/profiles2/ /profiles2/
+
+RUN sed -i 's/\r$//' /app/server.sh \
+    && chown -R brouter:brouter /app /segments4 /customprofiles /profiles2
 
 ENV CLASSPATH=/app/brouter.jar \
     SEGMENTSPATH=/segments4 \
@@ -30,4 +32,5 @@ USER brouter
 
 EXPOSE 17777
 
-CMD ["/app/server.sh"]
+CMD ["/bin/sh", "/app/server.sh"]
+
