@@ -413,7 +413,7 @@ assign isgoodforcars = if greater priorityclassifier 6 then true
 
 assign classifiermask add          isbadoneway
                       add multiply isgoodoneway   2
-                      add multiply isroundabout   100
+                      add multiply isroundabout   10
                       add multiply islinktype     8
                           multiply isgoodforcars 16
 
